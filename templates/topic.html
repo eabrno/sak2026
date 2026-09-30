@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{title}}</title>
+  <link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+<main>
+  <nav><a href="../../">← Všechna témata</a></nav>
+  <header class="topic-header">
+    <h1>{{title}}</h1>
+    <p class="meta">{{meta}}</p>
+    <p>{{description}}</p>
+  </header>
+
+  <article class="markdown-body">{{body}}</article>
+
+  <section class="gallery" aria-label="Fotografie">
+    {{images_html}}
+  </section>
+</main>
+
+<dialog id="lightbox" aria-label="Prohlížeč fotografií">
+  <button class="close" type="button" aria-label="Zavřít">×</button>
+  <button class="prev" type="button" aria-label="Předchozí">‹</button>
+  <img id="lightbox-image" alt="">
+  <button class="next" type="button" aria-label="Další">›</button>
+  <div class="lightbox-counter"></div>
+</dialog>
+<script src="../../gallery.js"></script>
+</body>
+</html>
