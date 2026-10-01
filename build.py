@@ -52,8 +52,15 @@ def parse_date(value):
 
 def topic_sort_key(item):
     data, slug = item
+    prefix = re.match(r"^(\d+)-", slug)
+    if prefix:
+        # A numeric directory prefix is an explicit manual order.
+        return (1, int(prefix.group(1)), slug.lower())
     date = parse_date(data.get("date"))
-    return (date is None, date or datetime.min.date(), slug.lower())
+    if date:
+        # Keep the original descending order for dated topics.
+        return (0, -date.toordinal(), slug.lower())
+    return (2, 0, slug.lower())
 
 
 def safe_filename(path: Path) -> str:
@@ -106,6 +113,24 @@ def normalize_cover(data):
     return str(cover) if cover else None
 
 
+def normalize_videos(data):
+    videos = data.get("videos", []) or []
+    if isinstance(videos, (str, dict)):
+        videos = [videos]
+
+    normalized = []
+    for index, video in enumerate(videos, start=1):
+        if isinstance(video, dict):
+            url = str(video.get("url", "")).strip()
+            title = str(video.get("title", f"Video {index}")).strip()
+        else:
+            url = str(video).strip()
+            title = f"Video {index}"
+        if url:
+            normalized.append({"url": url, "title": title})
+    return normalized
+
+
 def build_base_url():
     explicit = os.environ.get("SITE_URL", "").strip().rstrip("/")
     if explicit:
@@ -139,6 +164,7 @@ for directory in [x for x in TOPICS.iterdir() if x.is_dir()]:
     target.mkdir(parents=True, exist_ok=True)
     hidden = normalize_hidden(data)
     explicit_cover = normalize_cover(data)
+    videos = normalize_videos(data)
     images = []
 
     for src in sorted(directory.iterdir(), key=lambda p: p.name.lower()):
@@ -178,6 +204,26 @@ for directory in [x for x in TOPICS.iterdir() if x.is_dir()]:
         )
 
     body_html = mistune.html(body) if body else ""
+    videos_html = ""
+    if videos:
+        video_cards = []
+        for video in videos:
+            video_cards.append(
+                '<figure class="video">'
+                '<div class="video-frame">'
+                f'<iframe src="{escape(video["url"], quote=True)}" '
+                f'title="{escape(video["title"], quote=True)}" '
+                'allow="autoplay; fullscreen" allowfullscreen loading="lazy"></iframe>'
+                '</div>'
+                f'<figcaption>{escape(video["title"])}</figcaption>'
+                '</figure>'
+            )
+        videos_html = (
+            '<section class="videos" aria-label="Videa">'
+            '<h2>Videa</h2>'
+            f'<div class="video-grid">{"".join(video_cards)}</div>'
+            '</section>'
+        )
 
     date = data.get("date", "")
     if hasattr(date, "strftime"):
@@ -196,6 +242,7 @@ for directory in [x for x in TOPICS.iterdir() if x.is_dir()]:
         description=escape(description),
         body=body_html,
         images_html="".join(image_html),
+        videos_html=videos_html,
         image_count=len(images),
         slug=escape(slug),
     )
@@ -208,9 +255,10 @@ for directory in [x for x in TOPICS.iterdir() if x.is_dir()]:
     data["_date_sort"] = parse_date(data.get("date"))
     data["_meta"] = meta
     data["_image_count"] = len(images)
+    data["_video_count"] = len(videos)
     items.append((data, slug))
 
-items.sort(key=topic_sort_key, reverse=True)
+items.sort(key=topic_sort_key)
 
 cards = []
 for data, slug in items:
@@ -219,6 +267,13 @@ for data, slug in items:
         f'<img loading="lazy" src="{escape(cover)}" alt="">'
         if cover else '<div class="no-cover">Bez fotografií</div>'
     )
+    media_counts = []
+    if data.get("_image_count", 0):
+        media_counts.append(f'{data["_image_count"]} fotografií')
+    if data.get("_video_count", 0):
+        media_counts.append(f'{data["_video_count"]} videí')
+    if not media_counts:
+        media_counts.append("Bez médií")
     cards.append(
         f'<a class="topic" href="topics/{escape(slug)}/">'
         f'{cover_html}'
@@ -226,7 +281,7 @@ for data, slug in items:
         f'<h2>{escape(str(data.get("title", slug)))}</h2>'
         f'<p class="meta">{escape(str(data.get("_meta", "")))}</p>'
         f'<p>{escape(str(data.get("description", "")))}</p>'
-        f'<span class="count">{data.get("_image_count", 0)} fotografií</span>'
+        f'<span class="count">{escape(" · ".join(media_counts))}</span>'
         '</div></a>'
     )
 
