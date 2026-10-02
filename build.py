@@ -252,6 +252,9 @@ for directory in [x for x in TOPICS.iterdir() if x.is_dir()]:
     data["_cover"] = (
         f"topics/{slug}/{cover_image['thumb']}" if cover_image else ""
     )
+    data["_cover_full"] = (
+        f"topics/{slug}/{cover_image['url']}" if cover_image else ""
+    )
     data["_date_sort"] = parse_date(data.get("date"))
     data["_meta"] = meta
     data["_image_count"] = len(images)
@@ -285,10 +288,17 @@ for data, slug in items:
         '</div></a>'
     )
 
-title = os.environ.get("GALLERY_TITLE", "Výuka 2026/2027")
+header_image = next((data["_cover_full"] for data, _ in items if data.get("_cover_full")), "")
+header_style = (
+    f' style="background-image: url(\'{escape(header_image, quote=True)}\')"'
+    if header_image else ""
+)
+
+title = os.environ.get("GALLERY_TITLE", "Galerie studentských prací")
 index_html = render(
     load_template("index.html"),
     title=escape(title),
+    header_style=header_style,
     topics_html="".join(cards),
 )
 (OUT / "index.html").write_text(index_html, encoding="utf-8")

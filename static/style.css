@@ -26,13 +26,15 @@ a { color: inherit; }
   padding: 8.5rem 4rem 4.25rem;
   color: #fff;
   overflow: hidden;
-  background: #202124;
+  background-color: #202124;
+  background-size: cover;
+  background-position: center;
 }
 
 .site-header::before {
   position: absolute;
   inset: 0;
-  background: linear-gradient(120deg, #202124, #343a50 62%, #3f51b5);
+  background: linear-gradient(120deg, rgb(32 33 36 / 88%), rgb(52 58 80 / 80%) 62%, rgb(63 81 181 / 75%));
   content: "";
 }
 
