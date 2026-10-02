@@ -12,6 +12,8 @@ topics/2026-10-01-zlomky/
 └── 003.jpg
 ```
 
+Název adresáře je libovolný – pokud začíná datem (`RRRR-MM-DD-...`), podle něj se témata řadí sestupně. Pro ruční pořadí lze místo data použít číselnou předponu (např. `001-uvod`, `002-zlomky`), ta má přednost před `date`.
+
 `index.md`:
 
 ```yaml
@@ -24,6 +26,9 @@ description: Sčítání a odčítání zlomků
 cover: 001.jpg
 hidden_images:
   - 003.jpg
+videos:
+  - url: https://www.youtube.com/embed/XXXXXXXXXXX
+    title: Záznam hodiny
 ---
 
 ## Cíl hodiny
@@ -34,11 +39,12 @@ Text tématu může obsahovat běžný **Markdown**, seznamy, tabulky a další 
 ### Co generátor dělá
 
 - vytvoří úvodní stránku se seznamem témat a thumbnails,
-- řadí témata podle `date` sestupně,
+- řadí témata podle číselné předpony v názvu adresáře (`001-...`, `002-...`), pokud je uvedená; jinak podle `date` sestupně; témata bez čísla i bez data jsou na konci,
 - pro každé téma vytvoří samostatnou stránku,
-- automaticky vytváří optimalizované fotografie a thumbnails,
+- automaticky vytváří optimalizované fotografie (max. 1800 px) a thumbnaily (480×360),
 - první viditelnou fotografii použije jako cover, pokud není uvedeno `cover`,
 - podporuje `hidden_images` pro vynechání jednotlivých fotografií,
+- podporuje `videos` (odkazy na embed videí s vlastním titulkem) zobrazené pod galerií,
 - načítá základní EXIF informace (datum pořízení, výrobce/model fotoaparátu),
 - vykreslí Markdown z `index.md` nad galerií,
 - obsahuje fullscreen lightbox s předchozí/další fotografií,
